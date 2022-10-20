@@ -2,7 +2,7 @@ import Tries from "./Tries"
 import QueryMapper from "./QueryMapper"
 import express from "express"
 
-export default function createApp({ tries }: { tries: Tries }) {
+export default function createApp({ tries, allowedDistances }: { tries: Tries, allowedDistances: number[] }) {
   const app = express()
 
   app.get("/corrections", (req, res) => {
@@ -15,7 +15,7 @@ export default function createApp({ tries }: { tries: Tries }) {
     if (!language) return res.status(422).send(JSON.stringify({ error: "No language given" }))
 
     const t1 = new Date().getTime()
-    const correction = new QueryMapper({ query: text, language, tries, allowedDistances: [4, 9] }).map({ maxLookahead: 5 })
+    const correction = new QueryMapper({ query: text, language, tries, allowedDistances }).map({ maxLookahead: 5 })
     const t2 = new Date().getTime()
 
     res.send(JSON.stringify({
