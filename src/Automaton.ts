@@ -14,19 +14,19 @@ interface State {
  */
 
 export default class Automaton {
-  readonly string: string
+  readonly text: string
   readonly maxEdits: number
   private _transliteratedString: TransliterableString | null = null
 
-  constructor({ string, maxEdits }: { string: string, maxEdits: number }) {
-    this.string = string
+  constructor({ text, maxEdits }: { text: string, maxEdits: number }) {
+    this.text = text
     this.maxEdits = maxEdits
   }
 
   transliteratedString(): TransliterableString {
     if (this._transliteratedString) return this._transliteratedString
 
-    this._transliteratedString = new TransliterableString(this.string)
+    this._transliteratedString = new TransliterableString(this.text)
 
     return this._transliteratedString
   }
@@ -46,7 +46,7 @@ export default class Automaton {
     const res: Correction[] = []
     const distance = state.values[state.values.length - 1]
 
-    if (this.isMatch(state)) {
+    if (this.isMatch(state)) { // TODO do we need non-terminal corrections at all?
       res.push(
         new Correction({
           value: new TransliterableString(trieNode.getPhrase()),
@@ -59,15 +59,15 @@ export default class Automaton {
       )
     }
 
-    for (const char in trieNode.children) {
+    trieNode.children.forEach((_, char) => {
       const newState = this.step(state, char, trieNode.char)
 
       if (this.canMatch(newState)) {
-        const corrections = this.correctRecursive(trieNode.children[char], newState)
+        const corrections = this.correctRecursive(trieNode.children.get(char)!, newState)
 
         for (const correction of corrections) res.push(correction)
       }
-    }
+    })
 
     return res
   }
@@ -94,7 +94,7 @@ export default class Automaton {
     for (let j = 0; j < indices.length; j++) {
       const i = indices[j]
 
-      if (i === this.string.length) break
+      if (i === this.text.length) break
 
       const cost = this.calculateCost(i, curChar, prevChar)
       let value = values[j] + cost
@@ -117,7 +117,7 @@ export default class Automaton {
   }
 
   isMatch(state: State): boolean {
-    return state.indices.length > 0 && state.indices[state.indices.length - 1] === this.string.length
+    return state.indices.length > 0 && state.indices[state.indices.length - 1] === this.text.length
   }
 
   canMatch(state: State): boolean {
@@ -125,16 +125,16 @@ export default class Automaton {
   }
 
   private calculateCost(i: number, curChar: string, prevChar: string | null): number {
-    if (this.string[i] === curChar) return 0
+    if (this.text[i] === curChar) return 0
 
     // Handle transposition
 
-    if (i > 0 && prevChar && this.string[i - 1] === curChar && this.string[i] === prevChar) return 0
+    if (i > 0 && prevChar && this.text[i - 1] === curChar && this.text[i] === prevChar) return 0
 
     // Handle transliteration
 
     const ascii: string | null = transliterateChar(curChar)
-    if (ascii && i > 0 && this.string[i - 1] === ascii[0] && this.string[i] === ascii[1]) return 0
+    if (ascii && i > 0 && this.text[i - 1] === ascii[0] && this.text[i] === ascii[1]) return 0
 
     return 1
   }

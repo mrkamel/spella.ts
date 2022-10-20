@@ -12,29 +12,33 @@ import Automaton from "./Automaton"
  */
 
 export default class QueryMapper {
-  readonly string: string
+  readonly query: string
   readonly language: string
   readonly tries: Tries
   readonly trie: TrieNode
+  readonly allowedDistances: number[]
+  readonly wordCorrectionCache: Map<string, Correction>
 
-  constructor({ string, language, tries }: { string: string, language: string, tries: Tries }) {
-    this.string = string
+  constructor({ query, language, tries, allowedDistances }: { query: string, language: string, tries: Tries, allowedDistances: number[] }) {
+    this.query = query
     this.language = language
     this.tries = tries
     this.trie = tries.get(language)
+    this.allowedDistances = allowedDistances
+    this.wordCorrectionCache = new Map()
   }
 
   map({ maxLookahead = 5 }: { maxLookahead: number } = { maxLookahead: 5 }): Correction {
     if (!this.trie) {
       return new Correction({
-        value: new TransliterableString(this.string),
-        original: new TransliterableString(this.string),
+        value: new TransliterableString(this.query),
+        original: new TransliterableString(this.query),
         distance: 0,
         score: 0.0,
       })
     }
 
-    const words = this.string.split(" ").filter((e) => e.length > 0)
+    const words = this.query.split(" ").filter((e) => e.length > 0)
     const corrections: Correction[] = []
     let i = 0
 
@@ -54,12 +58,11 @@ export default class QueryMapper {
 
     return new Correction({
       value: new TransliterableString(corrections.map((correction) => correction.value.string).join(", ")),
-      original: new TransliterableString(this.string),
+      original: new TransliterableString(this.query),
       distance: corrections.reduce((acc, cur) => acc + cur.distance, 0),
       score: corrections.reduce((acc, cur) => acc + cur.score, 0.0),
     })
   }
-
 
   /**
    * Returns the best correction that matches the edit distance criteria by recursively
@@ -80,11 +83,15 @@ export default class QueryMapper {
     }
   ): Correction | null {
     const word = words[firstIndex]
-    const maxEdits = word.length <= 3 ? 0 : (word.length <= 8 ? 1 : 2)
-    const string = phrase ? ` ${word}` : word
+    const maxEdits = this.maxEdits(word)
+    const wordCorrection = this.correctWord(word, maxEdits)
+    const text = phrase ? ` ${word}` : word
     let bestCorrection: Correction | null = null
 
-    new Automaton({ string, maxEdits }).correct(trieNode).forEach((correction) => {
+    new Automaton({ text, maxEdits }).correct(trieNode).forEach((correction) => {
+      // Skip the phrase correction if the word correction distance is better
+      if (wordCorrection && correction.distance > wordCorrection.distance) return
+
       let currentCorrection = correction
 
       if (firstIndex < lastIndex) {
@@ -114,6 +121,35 @@ export default class QueryMapper {
     })
 
     return bestCorrection
+  }
+
+  /**
+   * Returns the max number of edits for the given word.
+   */
+
+  maxEdits(word: string): number {
+    for(let i = 0; i < this.allowedDistances.length; i++) {
+      if (word.length < this.allowedDistances[i]) return i
+    }
+
+    return this.allowedDistances.length
+  }
+
+  /**
+   * Lookup and cache the best correction of a single word.
+   */
+
+  correctWord(word: string, maxEdits: number): Correction | undefined {
+    if (this.wordCorrectionCache.has(word)) return this.wordCorrectionCache.get(word)
+
+    const correction =
+      new Automaton({ text: word, maxEdits })
+        .correct(this.trie)
+        .sort((a, b) => a.compareTo(b))[0]
+
+    this.wordCorrectionCache.set(word, correction)
+
+    return correction
   }
 
   /**

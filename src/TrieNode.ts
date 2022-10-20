@@ -9,7 +9,7 @@ export default class TrieNode {
   readonly char: string | null
   isTerminal: boolean
   score: number
-  readonly children: { [key:string]: TrieNode } = {}
+  readonly children: Map<string, TrieNode> = new Map()
 
   constructor(
     { parent = null, char = null, isTerminal = false, score = 0.0 }: {
@@ -32,12 +32,12 @@ export default class TrieNode {
 
     for (let index = 0; index < phrase.length; index++) {
       const char = phrase[index]
-      let newNode = node.children[char]
+      let newNode = node.children.get(char)
 
       if (!newNode) {
         newNode = new TrieNode({ parent: node, char })
 
-        node.children[char] = newNode
+        node.children.set(char, newNode)
       }
 
       node = newNode
@@ -54,7 +54,7 @@ export default class TrieNode {
     let res: TrieNode = this
 
     for (const char of phrase) {
-      const cur = res.children[char]
+      const cur = res.children.get(char)
 
       if (!cur) return
 

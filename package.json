@@ -8,12 +8,19 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc --build tsconfig.json",
-    "lint": "tslint -c tslint.json src/**/*.ts"
+    "lint": "tslint -c tslint.json src/**/*.ts",
+    "test": "jest",
+    "serve": "node build/src/index.js"
   },
   "devDependencies": {
     "@tsconfig/recommended": "^1.0.1",
     "@types/express": "^4.17.12",
+    "@types/jest": "^29.2.0",
     "@types/line-reader": "^0.0.33",
+    "@types/supertest": "^2.0.12",
+    "jest": "^29.2.1",
+    "supertest": "^6.3.0",
+    "ts-jest": "^29.0.3",
     "tslint": "^6.1.3",
     "typescript": "^4.3.5"
   },
