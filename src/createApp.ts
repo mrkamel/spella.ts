@@ -9,7 +9,7 @@ export default function createApp({ tries }: { tries: Tries }) {
     const text = req.query.text as string
     const language = req.query.language as string
 
-    res.setHeader('content-type', 'application/json; charset=utf-8');
+    res.setHeader("content-type", "application/json; charset=utf-8");
 
     if (!text) return res.status(422).send(JSON.stringify({ error: "No text given" }))
     if (!language) return res.status(422).send(JSON.stringify({ error: "No language given" }))
