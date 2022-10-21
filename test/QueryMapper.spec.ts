@@ -150,6 +150,18 @@ describe("QueryMapper", () => {
       expect(correction.value.string).toEqual("some, phrase")
     })
 
+    it("does not use partial corrections", () => {
+      const tries = new Tries()
+      tries.insert({ language: "en", phrase: "phrase", score: 1.0 })
+      tries.insert({ language: "en", phrase: "another phrase", score: 1.0 })
+
+      const correction1 = new QueryMapper({ language: "en", query: "phras", tries, allowedDistances }).map()
+      expect(correction1.value.string).toEqual("phrase")
+
+      const correction2 = new QueryMapper({ language: "en", query: "another phras", tries, allowedDistances }).map()
+      expect(correction2.value.string).toEqual("another phrase")
+    })
+
     it("prefers corrections with smaller distance", () => {
       const tries = new Tries()
       tries.insert({ language: "en", phrase: "phrase1", score: 1.0 })

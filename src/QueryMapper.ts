@@ -145,6 +145,7 @@ export default class QueryMapper {
     const correction =
       new Automaton({ text: word, maxEdits })
         .correct(this.trie)
+        .filter((correction) => correction.isTerminal)
         .sort((a, b) => a.compareTo(b))[0]
 
     this.wordCorrectionCache.set(word, correction)

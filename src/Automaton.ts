@@ -46,7 +46,9 @@ export default class Automaton {
     const res: Correction[] = []
     const distance = state.values[state.values.length - 1]
 
-    if (this.isMatch(state)) { // TODO do we need non-terminal corrections at all?
+    if (this.isMatch(state)) {
+      // Also return partial (non-terminal) matches to enable joining of words
+
       res.push(
         new Correction({
           value: new TransliterableString(trieNode.getPhrase()),
