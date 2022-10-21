@@ -17,7 +17,7 @@ async function start() {
     .strict()
     .parse()
 
-  const allowedDistances = options.distances.split(/,/).map((distance) => parseInt(distance, 10))
+  const allowedDistances = options.distances.split(",").map((distance) => parseInt(distance, 10))
 
   options.files.forEach((path) => {
     // tslint:disable-next-line no-console
