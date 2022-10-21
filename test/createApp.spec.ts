@@ -60,4 +60,14 @@ describe("createApp", () => {
       expect(response2.body).toEqual({ error: "No language given" })
     })
   })
+
+  describe("GET /info", () => {
+    it("returns version and server name", async () => {
+      const app = createApp({ tries: new Tries(), allowedDistances: [4, 9] })
+      const response = await request(app).get("/info")
+
+      expect(response.status).toEqual(200)
+      expect(response.body).toEqual({ name: "spella", version: expect.stringMatching(/^[0-9]+\.[0-9]+\.[0-9]+$/) })
+    })
+  })
 })

@@ -1,5 +1,6 @@
 import Tries from "./Tries"
 import QueryMapper from "./QueryMapper"
+import { version } from "./version"
 import express from "express"
 
 export default function createApp({ tries, allowedDistances }: { tries: Tries, allowedDistances: number[] }) {
@@ -9,7 +10,7 @@ export default function createApp({ tries, allowedDistances }: { tries: Tries, a
     const text = req.query.text as string
     const language = req.query.language as string
 
-    res.setHeader("content-type", "application/json; charset=utf-8");
+    res.setHeader("content-type", "application/json; charset=utf-8")
 
     if (!text) return res.status(422).send(JSON.stringify({ error: "No text given" }))
     if (!language) return res.status(422).send(JSON.stringify({ error: "No language given" }))
@@ -24,6 +25,10 @@ export default function createApp({ tries, allowedDistances }: { tries: Tries, a
       score: correction.score,
       took: t2 - t1
     }))
+  })
+
+  app.get("/info", (req, res) => {
+    res.setHeader("content-type", "application/json; charset=utf-8").send(JSON.stringify({ name: "spella", version }))
   })
 
   return app

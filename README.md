@@ -78,6 +78,13 @@ Response:
 where `distance` is the damerau levenshtein distance value and `took` tells you
 how long the response took.
 
+Additionally, spella provides an `/info` endpoint which provides version info
+and which can e.g. be used for docker health checks:
+
+```
+curl -X GET http://localhost:8080/info
+```
+
 ## Choosing Corrections
 
 The criteria for choosing the best correction are:
