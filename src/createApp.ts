@@ -2,9 +2,14 @@ import Tries from "./Tries"
 import QueryMapper from "./QueryMapper"
 import { version } from "./version"
 import express from "express"
+import morgan from "morgan"
 
 export default function createApp({ tries, allowedDistances }: { tries: Tries, allowedDistances: number[] }) {
   const app = express()
+
+  if (process.env.NODE_ENV !== 'test') {
+    app.use(morgan(':method :url :status - :response-time ms'))
+  }
 
   app.get("/corrections", (req, res) => {
     const text = req.query.text as string
