@@ -8,12 +8,15 @@ describe("QueryMapper", () => {
     it("returns the corrections", () => {
       const tries = new Tries()
       tries.insert({ language: "en", phrase: "some phrase", score: 1.0 })
+      tries.insert({ language: "en", phrase: "another phrase", score: 2.0 })
 
-      const corrections = new QueryMapper({ language: "en", query: "some phrse", tries, allowedDistances }).map()
+      const corrections = new QueryMapper({ language: "en", query: "some phrse and anoter phrase", tries, allowedDistances }).map()
 
-      expect(corrections.map((correction) => correction.value.string)).toEqual(["some phrase"])
-      expect(corrections.map((correction) => correction.original.string)).toEqual(["some phrse"])
-      expect(corrections.map((correction) => correction.score)).toEqual([1.0])
+      expect(corrections.map((correction) => correction.value.string)).toEqual(["some phrase", "and", "another phrase"])
+      expect(corrections.map((correction) => correction.original.string)).toEqual(["some phrse", "and", "anoter phrase"])
+      expect(corrections.map((correction) => correction.distance)).toEqual([1, 0, 1])
+      expect(corrections.map((correction) => correction.score)).toEqual([1.0, 0.0, 2.0])
+      expect(corrections.map((correction) => !!correction.trieNode)).toEqual([true, false, true])
     })
 
     it("applies the allowed distances", () => {
@@ -24,18 +27,21 @@ describe("QueryMapper", () => {
 
       expect(corrections1.map((correction) => correction.value.string)).toEqual(["some", "phrse"])
       expect(corrections1.map((correction) => correction.original.string)).toEqual(["some", "phrse"])
+      expect(corrections1.map((correction) => correction.distance)).toEqual([0, 0])
       expect(corrections1.map((correction) => correction.score)).toEqual([0.0, 0.0])
 
       const corrections2 = new QueryMapper({ language: "en", query: "some phse", tries, allowedDistances: [0, 0, 100] }).map()
 
       expect(corrections2.map((correction) => correction.value.string)).toEqual(["some phrase"])
       expect(corrections2.map((correction) => correction.original.string)).toEqual(["some phse"])
+      expect(corrections2.map((correction) => correction.distance)).toEqual([2])
       expect(corrections2.map((correction) => correction.score)).toEqual([1.0])
 
       const corrections3 = new QueryMapper({ language: "en", query: "some phse", tries, allowedDistances: [0] }).map()
 
       expect(corrections3.map((correction) => correction.value.string)).toEqual(["some", "phse"])
       expect(corrections3.map((correction) => correction.original.string)).toEqual(["some", "phse"])
+      expect(corrections3.map((correction) => correction.distance)).toEqual([0, 0])
       expect(corrections3.map((correction) => correction.score)).toEqual([0.0, 0.0])
     })
 
@@ -79,6 +85,7 @@ describe("QueryMapper", () => {
       const corrections = new QueryMapper({ language: "en", query: "beahc bar cocktal summmer", tries, allowedDistances }).map()
 
       expect(corrections.map((correction) => correction.value.string)).toEqual(["beach bar", "cocktail", "summer"])
+      expect(corrections.map((correction) => correction.original.string)).toEqual(["beahc bar", "cocktal", "summmer"])
       expect(corrections.map((correction) => correction.distance)).toEqual([1, 1, 1])
       expect(corrections.map((correction) => correction.score)).toEqual([1.0, 2.0, 3.0])
     })
