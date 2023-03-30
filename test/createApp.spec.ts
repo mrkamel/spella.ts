@@ -4,16 +4,28 @@ import request from "supertest"
 
 describe("createApp", () => {
   describe("GET /corrections", () => {
-    it("returns the correct text and distance", async () => {
+    it("returns the correct text, distance, score and corrections", async () => {
       const tries = new Tries()
       tries.insert({ language: "en", phrase: "some phrase", score: 1.0 })
       tries.insert({ language: "en", phrase: "another phrase", score: 1.0 })
 
-      const response = await request(createApp({ tries, allowedDistances: [4, 9] })).get("/corrections?text=some%20phrse&language=en")
+      const response = await request(createApp({ tries, allowedDistances: [4, 9] })).get("/corrections?text=some%20phrse%20and%20anoter%20phrase&language=en")
 
       expect(response.headers["content-type"]).toEqual("application/json; charset=utf-8")
       expect(response.status).toEqual(200)
-      expect(response.body).toEqual(expect.objectContaining({ text: 'some phrase', distance: 1, took: expect.any(Number) }))
+      expect(response.body).toEqual(
+        expect.objectContaining({
+          text: "some phrase, and, another phrase",
+          distance: 2,
+          score: 2.0,
+          took: expect.any(Number),
+          corrections: [
+            { original: "some phrse", text: "some phrase", distance: 1, score: 1.0, found: true },
+            { original: "and", text: "and", distance: 0, score: 0.0, found: false },
+            { original: "anoter phrase", text: "another phrase", distance: 1, score: 1.0, found: true }
+          ]
+        })
+      )
     })
 
     it("respects the language", async () => {
@@ -22,7 +34,7 @@ describe("createApp", () => {
       tries.insert({ language: "en", phrase: "eine phrose", score: 1.0 })
 
       const response = await request(createApp({ tries, allowedDistances: [4, 9] })).get("/corrections?text=eine%20phrose&language=de")
-      expect(response.body).toEqual(expect.objectContaining({ text: 'eine phrase', distance: 1, took: expect.any(Number) }))
+      expect(response.body).toEqual(expect.objectContaining({ text: "eine phrase", distance: 1, took: expect.any(Number) }))
     })
 
     it("respects the allowed distances", async () => {
