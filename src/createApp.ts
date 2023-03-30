@@ -21,14 +21,23 @@ export default function createApp({ tries, allowedDistances }: { tries: Tries, a
     if (!language) return res.status(422).send(JSON.stringify({ error: "No language given" }))
 
     const t1 = new Date().getTime()
-    const correction = new QueryMapper({ query: text, language, tries, allowedDistances }).map({ maxLookahead: 5 })
+    const corrections = new QueryMapper({ query: text, language, tries, allowedDistances }).map({ maxLookahead: 5 })
     const t2 = new Date().getTime()
 
     res.send(JSON.stringify({
-      text: correction.value.string,
-      distance: correction.distance,
-      score: correction.score,
-      took: t2 - t1
+      text: corrections.map((correction) => correction.value.string).join(", "),
+      distance: corrections.reduce((acc, cur) => acc + cur.distance, 0),
+      score: corrections.reduce((acc, cur) => acc + cur.score, 0.0),
+      took: t2 - t1,
+      corrections: corrections.map((correction) => {
+        return {
+          original: correction.original.string,
+          text: correction.value.string,
+          distance: correction.distance,
+          score: correction.score,
+          found: !!correction.trieNode,
+        }
+      })
     }))
   })
 

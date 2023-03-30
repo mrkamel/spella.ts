@@ -28,14 +28,16 @@ export default class QueryMapper {
     this.wordCorrectionCache = new Map()
   }
 
-  map({ maxLookahead = 5 }: { maxLookahead: number } = { maxLookahead: 5 }): Correction {
+  map({ maxLookahead = 5 }: { maxLookahead: number } = { maxLookahead: 5 }): Correction[] {
     if (!this.trie) {
-      return new Correction({
-        value: new TransliterableString(this.query),
-        original: new TransliterableString(this.query),
-        distance: 0,
-        score: 0.0,
-      })
+      return [
+        new Correction({
+          value: new TransliterableString(this.query),
+          original: new TransliterableString(this.query),
+          distance: 0,
+          score: 0.0,
+        })
+      ]
     }
 
     const words = this.query.split(" ").filter((e) => e.length > 0)
@@ -56,12 +58,7 @@ export default class QueryMapper {
       i += correction.original.wordCount()
     }
 
-    return new Correction({
-      value: new TransliterableString(corrections.map((correction) => correction.value.string).join(", ")),
-      original: new TransliterableString(this.query),
-      distance: corrections.reduce((acc, cur) => acc + cur.distance, 0),
-      score: corrections.reduce((acc, cur) => acc + cur.score, 0.0),
-    })
+    return corrections
   }
 
   /**

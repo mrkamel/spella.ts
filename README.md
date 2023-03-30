@@ -3,12 +3,12 @@
 Multi-language, Multi word, utf-8 spelling correction server for e.g. search
 engines using a levenshtein automaton and a Trie. Written in typescript.
 
-* Is capable of splitting words, joining words, correcting phrases, etc 
+* Is capable of splitting words, joining words, correcting phrases, etc
 * Calculates distances according to damerau-levenshtein and scores multi
   character transliterations (german umlauts) with a distance of one.
 * Applies a max edit distance per word.
 * Uses several optimizations like re-using trie nodes when correcting
-  phrases to achieve single digit millisecond response times most of the 
+  phrases to achieve single digit millisecond response times most of the
   time.
 * Applies multiple rules for choosing the best correction, including a
   user supplied score.
@@ -62,21 +62,46 @@ The server listens on port 8080 and uses a simple JSON based protocol.
 Request:
 
 ```
-curl -X GET http://127.0.0.1:8080/corrections?language=en&text=some+phrse
+curl -X GET http://127.0.0.1:8080/corrections?language=en&text=some+phrse+and+keword
 ```
 
 Response:
 
 ```json
 {
-  "text": "some phrase",
-  "distance": 1,
-  "took": 6
+  "text": "some phrase and keyword",
+  "distance": 2,
+  "score": 7433,
+  "took": 6,
+  "corrections": [
+    {
+      "original": "some phrse",
+      "text": "some phrase",
+      "distance": 1,
+      "score": 3942,
+      "found": true
+    },
+    {
+      "original": "and",
+      "text": "and",
+      "distance": 0,
+      "score": 0,
+      "found": false
+    },
+    {
+      "original": "keword",
+      "text": "keyword",
+      "distance": 1,
+      "score": 3491,
+      "found": true
+    }
+  ]
 }
 ```
 
 where `distance` is the damerau levenshtein distance value and `took` tells you
-how long the response took.
+how long the response took. As you see, spella returns the full correction and
+details about every single correction.
 
 Additionally, spella provides an `/info` endpoint which provides version info
 and which can e.g. be used for docker health checks:
