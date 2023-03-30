@@ -91,7 +91,7 @@ Response:
     {
       "original": "keword",
       "text": "keyword",
-      "distance: 1,
+      "distance": 1,
       "score": 3491,
       "found": true
     }
