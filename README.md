@@ -78,7 +78,7 @@ Response:
       "original": "some phrse",
       "text": "some phrase",
       "distance": 1,
-      "score": 50,
+      "score": 3942,
       "found": true
     },
     {
